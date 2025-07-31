@@ -15,6 +15,8 @@ const initSocket = (server) => {
         "http://localhost:5174",
         "https://news.neubri.site/api/",
         "https://news.neubri.site/api",
+        "https://artify-4.web.app/",
+        "https://artify-4.firebaseapp.com/",
       ],
       methods: ["GET", "POST"],
       credentials: true,
