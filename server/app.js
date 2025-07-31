@@ -16,19 +16,7 @@ const createApp = () => {
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
   // CORS configuration
-  app.use(
-    cors({
-      origin:
-        process.env.NODE_ENV === "production"
-          ? process.env.FRONTEND_URL
-          : [
-              "*", // Fallback for production environment
-            ],
-      credentials: true,
-      methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization", "x-requested-with"],
-    })
-  );
+  app.use(cors());
 
   // Security headers
   app.use((req, res, next) => {

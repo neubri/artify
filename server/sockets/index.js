@@ -8,9 +8,9 @@ const { handleBidding } = require("./bidding");
 const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: [
+      origin: 
          "*", // Fallback for production environment
-      ],
+      
       methods: ["GET", "POST"],
       credentials: true,
     },
