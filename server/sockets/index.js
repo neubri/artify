@@ -14,6 +14,7 @@ const initSocket = (server) => {
         "http://localhost:5173",
         "http://localhost:5174",
         "https://news.neubri.site/api/",
+        "https://news.neubri.site/api",
       ],
       methods: ["GET", "POST"],
       credentials: true,
