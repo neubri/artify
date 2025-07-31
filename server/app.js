@@ -22,14 +22,7 @@ const createApp = () => {
         process.env.NODE_ENV === "production"
           ? process.env.FRONTEND_URL
           : [
-              "http://localhost:3000",
-              "http://localhost:3001",
-              "http://localhost:5173",
-              "http://localhost:5174",
-              "https://news.neubri.site/api/",
-              "https://news.neubri.site/api",
-              "https://artify-4.web.app",
-              "https://artify-4.firebaseapp.com",
+              "*", // Fallback for production environment
             ],
       credentials: true,
       methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],

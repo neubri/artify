@@ -9,15 +9,7 @@ const initSocket = (server) => {
   const io = new Server(server, {
     cors: {
       origin: [
-        "http://localhost:3000",
-        "http://localhost:3001", 
-        "http://localhost:5173",
-        "http://localhost:5174",
-        "https://news.neubri.site/api/",
-        "https://news.neubri.site/api",
-        "https://artify-4.web.app",
-        "https://artify-4.firebaseapp.com",
-        process.env.FRONTEND_URL || "*", // Fallback for production environment
+         "*", // Fallback for production environment
       ],
       methods: ["GET", "POST"],
       credentials: true,
