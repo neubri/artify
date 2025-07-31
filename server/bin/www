@@ -1,0 +1,211 @@
+#!/usr/bin/env node
+
+/**
+ * Module dependencies.
+ */
+
+const createApp = require("../app");
+const debug = require("debug")("artify:server");
+const http = require("http");
+const { initSocket } = require("../sockets");
+const { sequelize } = require("../models");
+
+/**
+ * Load environment variables
+ */
+require("dotenv").config();
+
+/**
+ * Get port from environment and store in Express.
+ */
+
+const port = normalizePort(process.env.PORT || "3001");
+
+/**
+ * Create Express app
+ */
+const app = createApp();
+app.set("port", port);
+
+/**
+ * Create HTTP server.
+ */
+
+const server = http.createServer(app);
+
+/**
+ * Initialize Socket.IO
+ */
+const io = initSocket(server);
+
+// Make io available throughout the app
+app.set("io", io);
+
+/**
+ * Database connection and server startup
+ */
+const startServer = async () => {
+  try {
+    // Test database connection
+    console.log("🔌 Connecting to database...");
+    await sequelize.authenticate();
+    console.log("✅ Database connection established successfully");
+
+    // Sync database (only in development)
+    const NODE_ENV = process.env.NODE_ENV || "development";
+    if (NODE_ENV === "development") {
+      console.log("🔄 Syncing database models...");
+      await sequelize.sync({ alter: false });
+      console.log("✅ Database models synced");
+    }
+
+    /**
+     * Listen on provided port, on all network interfaces.
+     */
+    server.listen(port);
+    server.on("error", onError);
+    server.on("listening", onListening);
+
+    console.log("\n🚀 Artify Server Started Successfully!");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log(`📍 Environment: ${NODE_ENV}`);
+    console.log(`🌐 Server URL: http://localhost:${port}`);
+    console.log(`📡 API Base: http://localhost:${port}/api`);
+    console.log(`⚡ Socket.IO: Enabled`);
+    console.log(`🗄️  Database: Connected`);
+    console.log(`🤖 AI Service: Gemini 2.5 Flash Enabled`);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.log("\n📚 Available Endpoints:");
+    console.log("   GET  /api              - API information");
+    console.log("   GET  /api/health       - Health check");
+    console.log("   POST /api/auth/register - Register user");
+    console.log("   POST /api/auth/login    - Login user");
+    console.log("   GET  /api/items         - Get all items");
+    console.log("   GET  /api/items/:id     - Get item details");
+    console.log("   GET  /api/bids/:itemId  - Get item bids");
+    console.log("   POST /api/ai/why-worth-it     - AI analysis (Gemini)");
+    console.log(
+      "   POST /api/ai/price-prediction - AI price prediction (Gemini)"
+    );
+    console.log(
+      "   POST /api/ai/bidding-strategy - AI bidding strategy (Gemini)"
+    );
+    console.log("\n⚡ Socket.IO Events:");
+    console.log("   join-item     - Join item room");
+    console.log("   place-bid     - Place a bid");
+    console.log("   new-bid       - Receive bid updates");
+    console.log("\n💡 Tips:");
+    console.log("   - Use /api/health to check server status");
+    console.log("   - Check database seeds with /api/items");
+    console.log("   - Test AI endpoints with sample item data");
+    console.log("   - WebSocket URL: ws://localhost:" + port);
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+  } catch (error) {
+    console.error("❌ Failed to start server:");
+    console.error(error);
+
+    if (error.name === "SequelizeConnectionError") {
+      console.error("\n💡 Database connection failed. Make sure:");
+      console.error("   1. PostgreSQL is running");
+      console.error("   2. Database credentials in .env are correct");
+      console.error("   3. Database exists (run: npm run db:create)");
+    }
+
+    process.exit(1);
+  }
+};
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  const port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+
+/**
+ * Event listener for HTTP server "error" event.
+ */
+
+function onError(error) {
+  if (error.syscall !== "listen") {
+    throw error;
+  }
+
+  const bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+
+  // handle specific listen errors with friendly messages
+  switch (error.code) {
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
+      process.exit(1);
+      break;
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  debug("Listening on " + bind);
+}
+
+/**
+ * Graceful shutdown
+ */
+const gracefulShutdown = async (signal) => {
+  console.log(`\n⚠️  Received ${signal}. Starting graceful shutdown...`);
+
+  server.close(async () => {
+    console.log("🔌 HTTP server closed");
+
+    try {
+      await sequelize.close();
+      console.log("🗄️  Database connection closed");
+      console.log("✅ Graceful shutdown completed");
+      process.exit(0);
+    } catch (error) {
+      console.error("❌ Error during shutdown:", error);
+      process.exit(1);
+    }
+  });
+};
+
+// Handle shutdown signals
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (error) => {
+  console.error("💥 Uncaught Exception:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("💥 Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
+
+// Start the server
+startServer();
