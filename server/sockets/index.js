@@ -12,7 +12,8 @@ const initSocket = (server) => {
         "http://localhost:3000",
         "http://localhost:3001", 
         "http://localhost:5173",
-        "http://localhost:5174"
+        "http://localhost:5174",
+        "http://bidwars-app1.web.app"
       ],
       methods: ["GET", "POST"],
       credentials: true,
